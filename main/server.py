@@ -1,29 +1,34 @@
+#todo создать порядок для аргументов функций
+
+from config import HOST, PORT, USER, PASSWORD, DB_NAME
 from sqlalchemy import create_engine
-import requests
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
 
 class ClientError(Exception):
     """ ERROR """
 
 """Здесь все логика работы сервера"""
-class Card:
-    """Создание карточки (слово - перевод)"""
-    def __init__(self, word, translate):
+class Card(Base):
+    """
+    Создание карточки (слово - перевод)
+    """
+    __tablename__ = 'cards'
+
+    id = Column(Integer, primary_key=True)
+    word = Column(String(255))
+    translate = Column(String(255))
+    deckid = Column(Integer)
+    userid = Column(Integer)
+
+    def __init__(self, word, translate, deckid, userid):
         self.word = word
         self.translate = translate
-
-    # def translate(self, word):
-    #     url = f'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q={word}'
-    #     word_lst = requests.post(url)
-    #     translate_word = word_lst.json()
-    #     return translate_word[0][0][0]
-
-    def save(self, login, deckid=0):
-        WrapperDB().save_card(self.word, self.translate, login) # word ==card_name
-
-    def update(self, word, new_word, new_translate):
-        self.word = new_word
-        self.translate = new_translate
-        WrapperDB().update_card(word, new_word, new_translate)
+        self.deckid = deckid
+        self.userid = userid
 
     def __str__(self):
         return f"{self.word} {self.translate}"
@@ -31,111 +36,181 @@ class Card:
     def __repr__(self):
         return f"{self.word} {self.translate}"
 
+    def get_dict(self):
+        return {'userid': self.userid, 'deckid': self.deckid,
+                'word': self.word, 'translate': self.translate}
 
 
-class Deck:
-    """Создание колоды карт(по сути темы)"""
-    # card_list - список объектов - карточек
-    def __init__(self, deck_name, card_list): #или list id
+class Deck(Base):
+    """
+    Создание колоды карт(по сути темы)
+    """
+    __tablename__ = 'decks'
+
+    deck_id = Column(Integer, primary_key=True)
+    deck_name = Column(String(255))
+    userid = Column(Integer)
+
+    def __init__(self, deck_name, userid):
         self.deck_name = deck_name
-        self.card_list = card_list
+        self.userid = userid
 
-    def save_deck(self, login):
-        WrapperDB().save_deck(self.deck_name, self.card_list, login)
+    def get_dict(self):
+        return {'deckname': self.deck_id,
+                'userid': self.userid}
 
-    def add_new_card(self):
-        WrapperDB().save_card(login)
 
-    def del_card(self):
-        pass
+class User(Base):
+    """Класс пользователь"""
+    __tablename__ = 'users'
 
-    def edit_card(self):
-        pass
+    user_id = Column(Integer, primary_key=True)
+    login = Column(String(255))
+    password = Column(String(255))
+
+    def __init__(self, login, password):
+        self.login = login
+        self.password = password
+
+    def get_dict(self):
+        return {'login': self.login, 'user_id': self.user_id}
+
+    #todo __repr__ or __str__
 
 
 class Server:
     """Основная логика работы по созданию и передаче"""
-    def __init__(self, login, password):
-        self.login = login
-        self.password = password
-        self.authentication = self.is_authentication()
+    def __init__(self):
+        self._database_ = WrapperDB(HOST, PORT, USER, PASSWORD, DB_NAME)
+        # self.login = login
+        # self.password = password
+        # self.user = self.authentication(login, password)
         # print(self.authentication)
 
-    def is_authentication(self):
-        status = WrapperDB().is_authentication(self.login, self.password)
+    @classmethod
+    def get_result(self, data):
+        answer = data.copy()
+        if not answer:
+            answer = dict()
+            answer['status'] = False
+        else:
+            answer['status'] = True
+        return answer
+
+    def authentication(self, login, password):
+        """
+        Аутентификация пользователя по логину-паролю
+        """
+        user = self._database_.get_user(login, password)
+        return user
+
+    def registration(self, login, password):
+        """
+        Регистрация нового пользователя
+        """
+        status = self._database_.add_user(login, password)
         return status
 
-    # def registration(self, login, password):
-    #     WrapperDB().registrationDB(login,password)
+    def create_card(self, word, translate, user_id, deck_id=0):
+        """
+        Создание карты
+        """
+        status = self._database_.save_card(word, translate, user_id, deck_id)
+        return status
 
-    def create_card(self, word, translate):
-        a = Card(word, translate)
-        a.save(self.login)
+    def change_deck_of_card(self, user_id, card_name, deck_name):
+        deck = self._database_.get_decks_by_name(user_id, deck_name)
+        deck_id = str(deck[0].deck_id)
+        result = self._database_.change_deck_of_card(user_id, card_name, deck_id)
+        if not result:
+            return False
+        return True
 
-    def update_card(self, word, new_word, new_translate):
-        card_obj = WrapperDB().get_card(word, self.login)
-        card_obj.update(word, new_word, new_translate)
+    def update_card(self, user_id, word, new_word, new_translate):
+        """
+        Обновление данных карты
+        """
+        status = self._database_.update_card(user_id, word, new_word, new_translate)
+        return status
 
-    def delete_card(self, card_name):
-        WrapperDB().delete_card(card_name, self.login)
+    def delete_card(self, user_id, word):
+        """
+        Удаление карты
+        """
+        status = self._database_.delete_card(user_id, word)
+        return status
 
-    def create_deck(self,deck_name, card_list):
-        b = Deck(deck_name, card_list)
-        b.save_deck(self.login)
+    def receive_card_by_str(self, user_id, str_for_serching):
+        """
+        Получение карты по строке, которая должна соответствовать
+        слову или его переводу
+        """
+        cards = self._database_.get_cards_by_str(user_id, str_for_serching)
+        return cards
 
-    def receive_deck(self, deck_name):
-        return WrapperDB().get_deck(deck_name, self.login)
+    def create_deck(self, user_id, deck_name):
+        """
+        Создание колоды
+        """
+        status = self._database_.save_deck(user_id, deck_name)
+        return status
 
-    def rename_deck(self, deck_name, new_deck_name):
-        return WrapperDB().update_deck(deck_name, new_deck_name, self.login)
+    def receive_deck(self, user_id, deck_name):
+        """
+        Получение списка кард колоды
+        """
+        deck = self._database_.get_decks_by_name(user_id, deck_name)
+        deck_id = str(deck[0].deck_id)
+        cards_of_deck = self._database_.get_cards_of_deck(user_id, deck_id)
+        return cards_of_deck
+        # return deck
 
-    def delete_card_from_deck(self, deck_name, card_name):
-        deckid = WrapperDB().what_deck(deck_name, self.login)
-        return WrapperDB().del_card_from_deck(card_name, deckid, self.login)
+    def rename_deck(self, user_id, deck_name, new_deck_name):
+        """
+        Переименование колоды
+        """
+        deck = self._database_.get_decks_by_name(user_id, deck_name)
+        deck_id = str(deck[0].deck_id)
+        answer = self._database_.update_deck(user_id, deck_id, new_deck_name)
+        return answer
 
-    def delete_deck(self, deck_name):
-        deckid = WrapperDB().what_deck(deck_name, self.login)
-        return WrapperDB().del_deck(deckid, self.login)
+    def delete_deck(self, user_id, deck_name):
+        """
+        Удаление колоды со всеми ее картами
+        """
+        deck = self._database_.get_decks_by_name(user_id, deck_name)
+        deck_id = str(deck[0].deck_id)
+        answer = self._database_.del_deck(user_id, deck_id)
+        return answer
 
-    def receive_card(self,word):
-        card_obj = WrapperDB().get_card(word, self.login)
-        for i in card_obj:
-            yield i.word, i.translate
+    def receive_all_cards(self, user_id):
+        """
+        Получить все карты пользователя
+        """
+        cards = self._database_.get_all_cards(user_id)
+        return cards
 
-    def receive_all_cards(self):
-        word_list = []
-        for i in WrapperDB().get_all_cards(self.login):
-            word_list.append(i)
-        return word_list
-
-    def receive_all_decks(self):
-        return WrapperDB().get_all_decks(self.login)
-
-    def add_card_to_deck(self, deck_name, card_name):
-         return WrapperDB().add_card_to_deck(deck_name,card_name, self.login)
-
-    def add_new_card_to_deck(self, deck_name, word, translate):
-        deck_id = WrapperDB().what_deck(deck_name, self.login)
-        return WrapperDB().save_card(word, translate, self.login, deck_id)
-
+    def receive_all_decks(self, user_id):
+        """
+        Получить все колоды пользователя
+        """
+        decks = self._database_.get_all_decks(user_id)
+        return decks
 
 
 class ConnectDB:
     """Соединение с базой данных"""
-    def __init__(self):
-        self.cur_string = self.get_conn()
-        self.cur = create_engine(self.cur_string)
-        # print('Создано подключение к БД')
 
-    def get_conn(self):
-        # with open("conf.json")
-        host = "127.0.0.1"
-        port = "5432"
-        user = "postgres"
-        passwd = "31471"
-        db_name = "eng_words"
-        cur_string = f"postgresql://{user}:{passwd}@{host}:{port}/{db_name}"
-        return cur_string
+    def __init__(self, host, port, user, passwd, db_name):
+
+        # Todo Понять, что делать с "postgresql" в строке
+        # Скорее всего ее должен генерить админ или кто этим занимается
+        # Поэтому в будущем db_connection_str будет аргументом
+        db_connection_str = f"postgresql://{user}:{passwd}@{host}:{port}/{db_name}"
+        self._cur_ = create_engine(db_connection_str)
+
+        Session = sessionmaker(bind=self._cur_)
+        self.session = Session()
 
 
 class WrapperDB: # Вся алхимия здесь
@@ -143,180 +218,179 @@ class WrapperDB: # Вся алхимия здесь
     Необходим для того, чтобы сохранить логику приложения
     при замене базы данных(просто можем поменять базу на MongoDB(например)
     и редактировать только текущий класс и класс соединения с БД)"""
-    def __init__(self): #  ConnectDB().cursor()
-        # self.cur_str  ConnectDB.cur_string
-        self.cur = ConnectDB().cur
+    def __init__(self, host, port, user, passwd, db_name):
+        self._cur_ = ConnectDB(host, port, user, passwd, db_name).session
 
-    def save_card(self, word, translate, login, deckid=0):
-        self.cur.execute(
-            "CREATE TABLE IF NOT EXISTS cards (ID SERIAL PRIMARY KEY, "
-            "Word varchar(255), Translate varchar(255), DeckID varchar(255), userID varchar(255))")
-        result = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for userid in result:
-            # print(userid[0])
-            self.cur.execute(f"INSERT INTO cards (Word, Translate, DeckID, userID) VALUES ('{word}','{translate}','{deckid}','{userid[0]}')")
+    def save_card(self, word, translation, user_id, deck_id):
+        """
+        Создание новой карты в таблице cards
+        Предполагается, что deck_id проверен заранее
+        """
+
+        new_card = Card(word, translation, deck_id, user_id)
+        self._cur_.add(new_card)
+        a = self._cur_.commit()
         return True
 
-    def what_deck(self, deck_name, login):
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            result = self.cur.execute(f"SELECT deck_id, deck_name FROM"
-                                      f" decks WHERE deck_name = '{deck_name}' and userid = '{us[0]}'")
-            for i in result:
-                deck_id = i[0]
-        return deck_id
-
-
-    def delete_card(self, card_name, login):
-        """Функция для удаления карты из всех колод"""
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            self.cur.execute(f"DELETE FROM cards WHERE word = '{card_name}' AND userid = '{us[0]}'")
+    def change_deck_of_card(self, user_id, card_name, new_deck_id):
+        """
+        Изменение колоды карты
+        """
+        card = self.get_card_by_id(user_id, card_name)
+        if card:
+            card.deckid = new_deck_id
+            self._cur_.add(card)
+            self._cur_.commit()
             return True
-
-    def del_card_from_deck(self, card_name, deck_id, login):
-        """Функция для удаления карты из колоды"""
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            self.cur.execute(f"UPDATE cards SET deckid = '0' WHERE word = '{card_name}'"
-                             f" and deckid = '{deck_id}' and userid = '{us[0]}'")
-
-        return True
-
-    def update_card(self, card_name, new_word, new_translate): #все нормально, логин не забыт, т/к сначала идет получение карты(get)
-        """Функция для обновления данных карты"""
-        self.cur.execute(f"UPDATE cards "
-                         f"SET word = '{new_word}', translate ='{new_translate}' "
-                         f"WHERE word = '{card_name}'")
-        return True
-
-    def save_deck(self, deck_name, card_list, login): # or deck_id
-        """Функция для добавления колоды пользователем"""
-        # print(deck_name)
-        # print(card_list)
-        # print(login)
-        self.cur.execute(
-            "CREATE TABLE IF NOT EXISTS decks (DECK_ID SERIAL PRIMARY KEY, "
-            "deck_name varchar(255), userID varchar(255))")
-        result = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}' ")
-        for user in result:
-            self.cur.execute(f"INSERT INTO decks (deck_name, userID) VALUES ('{deck_name}', '{user[0]}')")
-        res2 = self.cur.execute(f"SELECT deck_id, deck_name FROM decks "
-                                f"WHERE deck_name = '{deck_name}' and userid = '{user[0]}'")
-        for id_deck in res2:
-            for card in card_list:
-                self.cur.execute(f"UPDATE cards SET deckid = '{id_deck[0]}' "
-                                 f"WHERE word = '{card}' and userid = '{user[0]}'")
-        return True
-
-    def del_deck(self, deck_id, login): # deck_id
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            self.cur.execute(f"UPDATE cards SET deckid = '0' WHERE deckid = '{deck_id}' and userid = '{us[0]}'")
-            self.cur.execute(f"DELETE FROM decks WHERE deck_id = '{deck_id}' and userid = '{us[0]}'")
-        return True
-
-    def update_deck(self, deck_name, new_deck_name,login):  # or deck_id
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            self.cur.execute(f"UPDATE decks SET deck_name = '{new_deck_name}' WHERE deck_name = '{deck_name}' and userid = '{us[0]}'")
-        return True
-
-    def get_card(self, card_name, login):
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            result = self.cur.execute(f"SELECT word, translate from cards WHERE word = '{card_name}' AND userid = '{us[0]}'")
-            for i in result:
-                word, translate = i[0], i[1]
-                obj = Card(word, translate)
-                yield obj
-
-    def get_all_cards(self, login):
-        """Возвращает данные для всех карт пользователя"""
-        # all_cards = self.cur.execute(f"select cards.id, original, translation from cards "
-        #                              f"inner join carddeckpairs as cdp "
-        #                              f"on cards.id=cdp.cardid "
-        #                              f"inner join decks "
-        #                              f"on cdp.deckid=decks.id "
-        #                              f"where decks.userid={user_id}")
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            result = self.cur.execute(f"SELECT word, translate from cards WHERE userid = '{us[0]}'")
-
-            for i in result:
-                word, translate = i[0], i[1]
-                obj = Card(word, translate)
-                yield obj
-
-    def get_deck(self, deck_name, login):
-        deck_dict = {}
-        card_dict = {}
-        user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
-        for us in user:
-            deck = self.cur.execute(f"SELECT deck_id, deck_name FROM decks WHERE userid = '{us[0]}' and deck_name = '{deck_name}'")
-            for i in deck:
-                deck_dict['deck_name'] = i[1]
-                cards = self.cur.execute(f"SELECT word, translate FROM cards WHERE userid = '{us[0]}' and deckid = '{i[0]}'")
-                for card in cards:
-                    card_dict[card[0]] = card[1]
-            deck_dict['cards'] = card_dict
-            return deck_dict
-
-    def get_all_decks(self, login):
-        """Получение всех колод"""
-        decks_dict = {}
-        decks_list = []
-        user = self.cur.execute(f"SELECT user_id, login from users WHERE login = '{login}'")
-        for us in user:
-            all_decks = self.cur.execute(f"SELECT deck_name from decks WHERE userid = '{us[0]}'")
-            for deck in all_decks:
-                decks_list.append(deck[0])
-            decks_dict['decks'] = decks_list
-        return decks_dict
-
-    def add_card_to_deck(self, deck_name, card_name, login):
-        """Добавление существующей карты в колоду"""
-        user = self.cur.execute(f"SELECT user_id, login from users WHERE login = '{login}'")
-        for us in user:
-            deck = self.cur.execute(f"SELECT deck_id, deck_name from decks WHERE userid = '{us[0]}' and deck_name = '{deck_name}'")
-            for elem in deck:
-                self.cur.execute(f"UPDATE cards SET deckid = '{elem[0]}' WHERE word = '{card_name}' and userid = '{us[0]}'")
-        return True
-
-
-    def is_authentication(self, login, password):
-        result = self.cur.execute(f"SELECT login, password FROM users WHERE login = '{login}' AND password = '{password}'")
-        for user in result:
-            # print(user)
-            if user:
-                return True
         return False
 
-    def registrationDB(self, login, password):
-        self.cur.execute(
-            "CREATE TABLE IF NOT EXISTS users (USER_ID SERIAL PRIMARY KEY,  login VARCHAR(50), password VARCHAR(50))")
+    def get_cards_by_str(self, user_id, str_for_searching):
+        """
+        Получение карт по полному совпадению card.word или
+        card.translation с str_for_searching
+        """
+        by_word = self._cur_.query(Card).filter(Card.word == str_for_searching and
+                                                Card.userid == user_id).all()
+        by_word = set(by_word)
+        by_translation = self._cur_.query(Card).filter(Card.translate == str_for_searching and
+                                                       Card.userid == user_id).all()
+        by_translation = set(by_translation)
 
-        if self.user_in_DB(login):
-            raise ClientError('Такой пользователь уже существует') # как сообщить клиенту? try except?
-        else:
-            result = self.cur.execute(f"INSERT INTO users (login, password) VALUES ('{login}','{password}')")
+        cards = by_word.union(by_translation)
+        cards_list = list(cards)
+        return cards_list
+
+    def get_card_by_id(self, user_id, word):
+        """
+        Получение карты по id
+        """
+        query = self._cur_.query(Card).filter(Card.word == word and Card.userid == user_id)
+        card = query.one_or_none()
+        return card
+
+    def delete_card(self, user_id, word):
+        """
+        Удаление карты
+        """
+        card = self.get_card_by_id(user_id, word)
+        if card:
+            self._cur_.delete(card)
+            self._cur_.commit()
             return True
-
-
-    def user_in_DB(self,login):
-        result = self.cur.execute(f"SELECT login, password FROM users WHERE login = '{login}'")
-        for user in result:
-            if user:
-                return True
         return False
 
+    def update_card(self, user_id, word, new_word, new_translate):
+        """
+        Обновление данных карты
+        """
+        card = self.get_card_by_id(user_id, word)
+        if card:
+            card.word = new_word
+            card.translate = new_translate
+            self._cur_.add(card)
+            self._cur_.commit()
+            return True
+        return False
 
+    def get_all_cards(self, user_id):
+        """
+        Получение всех карт пользователя
+        """
+        cards_list = self._cur_.query(Card).filter(Card.userid == user_id).all()
+        return cards_list
 
-    # def create_table(self):
-    #     result = self.cur.execute(f"CREATE TABLE users (USER_ID SERIAL PRIMARY KEY,  login VARCHAR(50), password VARCHAR(50))")
+    def save_deck(self, user_id, deck_name):
+        """
+        Создание колоды
+        """
+        deck = Deck(deck_name, user_id)
+        self._cur_.add(deck)
+        self._cur_.commit()
+        return True
 
-    # def registration(self):
-    #     result = self.cur.execute("INSERT INTO (login, password)")
+    def del_deck(self, user_id, deck_id): # deck_id
+        """
+        Удаление колоды со всеми ее картами (каскад)
+        """
+        deck = self.get_deck_by_id(user_id, deck_id)
+        if deck:
+            self._cur_.delete(deck)
+            self._cur_.commit()
+            return True
+        return False
 
-# WrapperDB().create_table()
-# print(WrapperDB().user_in_DB('vasya'))
+    def update_deck(self, user_id, deck_id, new_deck_name):
+        """
+        Обновление данных колоды
+        """
+        deck = self.get_deck_by_id(user_id, deck_id)
+        if deck:
+            deck.deck_name = new_deck_name
+            self._cur_.add(deck)
+            self._cur_.commit()
+            return True
+        return False
+
+    def get_decks_by_name(self, user_id, deck_name):
+        """
+        Получение колод, у которых deck.deck_name совпадает с deck_name
+        """
+        #todo Сделать неполное совпадение
+        query = self._cur_.query(Deck).filter(Deck.deck_name == deck_name and Deck.userid == user_id)
+        decks = query.all()
+        return decks
+
+    def get_deck_by_id(self, user_id, deck_id):
+        """
+        Получение колоды по id
+        """
+        query = self._cur_.query(Deck).filter(Deck.deck_id == deck_id and Deck.userid == user_id)
+        deck = query.one_or_none()
+        return deck
+
+    def get_all_decks(self, user_id):
+        """
+        Получение всех колод пользователя
+        """
+        decks = self._cur_.query(Deck).filter(Deck.userid == user_id).all()
+        return decks
+
+    def get_cards_of_deck(self, user_id, deck_id):
+        """
+        Получение всех карт колоды
+        """
+        query = self._cur_.query(Card).filter(Card.deckid == deck_id and Card.userid == user_id)
+        cards = query.all()
+        return cards
+
+    def get_user(self, login, password):
+        """
+        Получение пользователя, если он существует в
+        таблице Users.
+        """
+        query = self._cur_.query(User.user_id).filter(User.login == login, User.password == password)
+        user = query.one_or_none()
+        return user
+
+    def add_user(self, user_name, password):
+        """
+        Добавление нового пользователя, если не существует другого
+        пользователя с таким же user_name
+        """
+        if not self.is_user_exist(user_name):
+            new_user = User(user_name, password)
+            self._cur_.add(new_user)
+            self._cur_.commit()
+            return True
+        return False
+
+    def is_user_exist(self, user_name):
+        """
+        Проверка, существует ли пользователь
+        """
+        query = self._cur_.query(User).filter(User.login == user_name)
+        user = query.one_or_none()
+
+        if user:
+            return True
+        return False
