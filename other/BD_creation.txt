@@ -1,0 +1,42 @@
+CREATE TABLE Users
+(
+    id serial NOT NULL,
+    username character varying(255) NOT NULL,
+    PRIMARY KEY (id)
+)
+
+CREATE TABLE Decks
+(
+    id serial NOT NULL,
+    deckname character varying(255) NOT NULL,
+    userID integer NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT userid_fkey FOREIGN KEY (userID)
+        REFERENCES Users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+CREATE TABLE Cards
+(
+    id serial NOT NULL,
+    original character varying(1023) NOT NULL,
+    translation character varying(1023) NOT NULL,
+    PRIMARY KEY (id)
+)
+
+
+CREATE TABLE CardDeckPairs
+(
+    CardID integer NOT NULL,
+    DeckID integer NOT NULL,
+    PRIMARY KEY (CardID, DeckID),
+    CONSTRAINT cardid_fkey FOREIGN KEY (CardID)
+        REFERENCES Cards (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT deckid_fkey FOREIGN KEY (DeckID)
+        REFERENCES Decks (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
