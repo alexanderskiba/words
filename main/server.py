@@ -1,12 +1,51 @@
 from sqlalchemy import create_engine
-import requests
+import logging
+import re
+
+"""Здесь все логика работы сервера"""
 
 class ClientError(Exception):
     """ ERROR """
 
-"""Здесь все логика работы сервера"""
+
+class ValidChange(object):
+    """Дескриптор данных для валидации и исправления слов"""
+    def _valid_word(self,val):
+        pass
+
+    def _valid_translate(self,val):
+        pass
+
+    def _valid_deck_name(self,val):
+        pass
+
+    def __init__(self,name = 'название атрибута'):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        return instance.__dict__(self.name)
+
+    def __set__(self, instance, value):
+        if not isinstance(value, str):
+            raise TypeError(f'Неверный тип {value} - {type(value)}')
+
+        if self.name == 'word':
+            value = self._valid_word(value)
+        if self.name == 'translate':
+            value = self._valid_translate(value)
+        if self.name == 'deck_name':
+            value = self._valid_deck_name(value)
+
+
+
+
+
 class Card:
     """Создание карточки (слово - перевод)"""
+
+    word = ValidChange('word')
+    translate = ValidChange('translate')
+
     def __init__(self, word, translate):
         self.word = word
         self.translate = translate
@@ -36,6 +75,8 @@ class Card:
 class Deck:
     """Создание колоды карт(по сути темы)"""
     # card_list - список объектов - карточек
+    deck_name = ValidChange('deck_name')
+
     def __init__(self, deck_name, card_list): #или list id
         self.deck_name = deck_name
         self.card_list = card_list

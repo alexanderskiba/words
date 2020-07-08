@@ -1,6 +1,7 @@
 from flask import Flask, request
 from server import Server, Deck, ClientError, WrapperDB
 
+
 app = Flask(__name__)
 @app.route('/Server/registration/<user_name>', methods=['POST','GET'])
 def registration(user_name):
