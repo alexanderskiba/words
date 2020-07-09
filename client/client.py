@@ -42,7 +42,7 @@ def get_card(word, login, password):
     data = {word:''}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-get_card('penetrator', 'flexer', '6666')
+# get_card('penetrator', 'flexer', '6666')
 
 def get_all_cards(login, password):
     """Получение всех карточек"""
@@ -50,7 +50,7 @@ def get_all_cards(login, password):
     passwd = {"password": password}
     response = requests.post(url, headers=passwd)
     print(response.json())
-# get_all_cards('bob','qwerty')
+get_all_cards('flexer','6666')
 
 def delete_card(card_name, login, password):
     """Удаление карточки"""

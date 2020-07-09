@@ -131,8 +131,7 @@ class Server:
 
     def receive_card(self,word):
         card_obj = WrapperDB().get_card(word, self.login)
-        for i in card_obj:
-            yield i.word, i.translate
+        return card_obj.word, card_obj.translate
 
     def receive_all_cards(self):
         word_list = []
@@ -260,8 +259,8 @@ class WrapperDB: # Вся алхимия здесь
             result = self.cur.execute(f"SELECT word, translate from cards WHERE word = '{card_name}' AND userid = '{us[0]}'")
             for i in result:
                 word, translate = i[0], i[1]
-                obj = Card(word, translate)
-                yield obj
+            obj = Card(word, translate)
+            return obj
 
     def get_all_cards(self, login):
         """Возвращает данные для всех карт пользователя"""

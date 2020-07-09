@@ -40,7 +40,6 @@ def update_card(user_name):
             word = key
             new_word = item[0]
             translate = item[1]
-            print(word,new_word,translate)
             user_serv.update_card(word, new_word, translate)
 
         return {"status": True}
@@ -71,14 +70,7 @@ def receive_card(user_name):
         for key, item in data.items():
             word = key
         card = user_serv.receive_card(word)
-        dict_list = []
-        for i in card:
-            card_dict = {}
-            card_dict[i[0]] = i[1]
-            dict_list.append(card_dict)
-        return {"status": True, "info": dict_list}
-                # "word": card[0],
-                # "translate": card[1]}
+        return {"status": True, "info": {'word': card[0], 'translate': card[1]}}
     return {"status": False, "info": 'wrong client'}
 
 @app.route('/Server/receive_all_cards/<user_name>', methods=['POST','GET'])
