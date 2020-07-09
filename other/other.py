@@ -20,3 +20,7 @@ new2 = re.sub(r'[^a-z,A-Z]+', r'', string2)
 if not new2.isalpha():
     raise ValueError
 else:print(new2)
+
+kek = 'пизда'
+if kek.isalpha():
+    print('путин')

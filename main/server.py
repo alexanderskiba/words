@@ -11,21 +11,15 @@ class ClientError(Exception):
 class ValidChange(object):
     """Дескриптор данных для валидации и исправления слов"""
     def _valid_wordsss(self, val):
-        val = re.sub(r'[^a-z,A-Z]+', r'', val)
-        if val.isalpha():
-            print(True)
-            print(val)
+        val = re.sub(r'[^a-z,A-Z,а-я,А-Я]+', r'', val)
         if not val.isalpha():
-            # raise ValueError('На вход поданы одни лишь цифры')
-            print(True)
-            print(val)
+            raise ValueError('На вход поданы одни лишь цифры')
         return val
 
     def __init__(self, name = 'название атрибута'):
         self.name = name
 
     def __get__(self, instance, owner):
-        print(instance.__dict__)
         return instance.__dict__[self.name]
 
     def __set__(self, instance, value):
@@ -34,6 +28,7 @@ class ValidChange(object):
 
         if self.name in ['word', 'translate', 'deck_name']:
             value = self._valid_wordsss(value)
+        instance.__dict__[self.name] = value
 
 
 class Card:
