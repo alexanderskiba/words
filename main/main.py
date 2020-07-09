@@ -40,9 +40,9 @@ def update_card(user_name):
             word = key
             new_word = item[0]
             translate = item[1]
-            user_serv.update_card(word, new_word, translate)
+            answer = user_serv.update_card(word, new_word, translate)
 
-        return {"status": True}
+        return {"status":answer }
     return {"status": False, "info": 'wrong client'}
 
 
@@ -70,7 +70,15 @@ def receive_card(user_name):
         for key, item in data.items():
             word = key
         card = user_serv.receive_card(word)
-        return {"status": True, "info": {'word': card[0], 'translate': card[1]}}
+        if not card:
+            card_dict = {word: 'not exists'}
+            answer = False
+            return {"status": answer, "info": card_dict}
+        else:
+            card_dict = {'word': card[0], 'translate': card[1]}
+            answer = True
+            return {"status": answer, "info": card_dict}
+
     return {"status": False, "info": 'wrong client'}
 
 @app.route('/Server/receive_all_cards/<user_name>', methods=['POST','GET'])

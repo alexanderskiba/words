@@ -106,7 +106,10 @@ class Server:
 
     def update_card(self, word, new_word, new_translate):
         card_obj = WrapperDB().get_card(word, self.login)
+        if type(card_obj) is bool:
+            return {word: 'not exists', 'status': False}
         card_obj.update(word, new_word, new_translate)
+        return True
 
     def delete_card(self, card_name):
         WrapperDB().delete_card(card_name, self.login)
@@ -131,6 +134,8 @@ class Server:
 
     def receive_card(self,word):
         card_obj = WrapperDB().get_card(word, self.login)
+        if type(card_obj) is bool:
+            return False
         return card_obj.word, card_obj.translate
 
     def receive_all_cards(self):
@@ -258,9 +263,13 @@ class WrapperDB: # Вся алхимия здесь
         for us in user:
             result = self.cur.execute(f"SELECT word, translate from cards WHERE word = '{card_name}' AND userid = '{us[0]}'")
             for i in result:
+                #здесь все начинает ломаться при запросе несуществующего слова
                 word, translate = i[0], i[1]
-            obj = Card(word, translate)
-            return obj
+            try:
+                obj = Card(word, translate)
+                return obj
+            except UnboundLocalError:
+                return False
 
     def get_all_cards(self, login):
         """Возвращает данные для всех карт пользователя"""
