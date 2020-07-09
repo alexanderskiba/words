@@ -10,34 +10,30 @@ class ClientError(Exception):
 
 class ValidChange(object):
     """Дескриптор данных для валидации и исправления слов"""
-    def _valid_word(self,val):
-        pass
+    def _valid_wordsss(self, val):
+        val = re.sub(r'[^a-z,A-Z]+', r'', val)
+        if val.isalpha():
+            print(True)
+            print(val)
+        if not val.isalpha():
+            # raise ValueError('На вход поданы одни лишь цифры')
+            print(True)
+            print(val)
+        return val
 
-    def _valid_translate(self,val):
-        pass
-
-    def _valid_deck_name(self,val):
-        pass
-
-    def __init__(self,name = 'название атрибута'):
+    def __init__(self, name = 'название атрибута'):
         self.name = name
 
     def __get__(self, instance, owner):
-        return instance.__dict__(self.name)
+        print(instance.__dict__)
+        return instance.__dict__[self.name]
 
     def __set__(self, instance, value):
         if not isinstance(value, str):
             raise TypeError(f'Неверный тип {value} - {type(value)}')
 
-        if self.name == 'word':
-            value = self._valid_word(value)
-        if self.name == 'translate':
-            value = self._valid_translate(value)
-        if self.name == 'deck_name':
-            value = self._valid_deck_name(value)
-
-
-
+        if self.name in ['word', 'translate', 'deck_name']:
+            value = self._valid_wordsss(value)
 
 
 class Card:

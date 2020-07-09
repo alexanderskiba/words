@@ -24,7 +24,6 @@ def create_card(user_name):
         for key, item in data.items():
             word = key
             translate = item
-            print(word)
             user_serv.create_card(word,translate)
         return {"status": True}
     return {"status": False, "info": 'wrong client'}
