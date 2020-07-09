@@ -33,7 +33,7 @@ def update(word, new_word, translate, login, password):
     data = {word:[new_word,translate]}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-# update('flex','mouse','мышь','bob','qwerty')
+# update('flex','penetrator','еееееееее','flexer','6666')
 
 def get_card(word, login, password):
     """Получение карточки"""
@@ -42,7 +42,7 @@ def get_card(word, login, password):
     data = {word:''}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-# get_card('beer', 'flexer', '6666')
+get_card('penetrator', 'flexer', '6666')
 
 def get_all_cards(login, password):
     """Получение всех карточек"""
