@@ -9,7 +9,7 @@ def registration(login, password):
 # registration('flexer','6666')
 
 
-def write(word,translate,login,password):
+def write(word, translate, login, password):
     """создание карточки"""
     url = f'http://127.0.0.1:5000//Server/create_card/{login}'
     passwd = {"password":password}
@@ -33,7 +33,7 @@ def update(word, new_word, translate, login, password):
     data = {word:[new_word,translate]}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-update('SYCH','aaaaa','bbbbb','flexer','6666')
+# update('SYCH','aaaaa','bbbbb','flexer','6666')
 
 def get_card(word, login, password):
     """Получение карточки"""
@@ -59,7 +59,7 @@ def delete_card(card_name, login, password):
     data = {card_name: ''}
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
-# delete_card('cat','bob','qwerty')
+# delete_card('жумайсынба','flexer','6666')
 
 def create_deck(deck_name, login, password, *args):
     """Создание колоды"""
@@ -70,7 +70,7 @@ def create_deck(deck_name, login, password, *args):
     print(response.json())
 # create_deck('anything', 'flexer', '6666', 'dog', 'car', 'beer', 'vova', 'flex')
 # create_deck('pets', 'flexer', '6666', 'dog', 'cat')
-# create_deck('pets111', 'flexer', '6666', 'beer', 'parrot', 'mem', 'cat')
+# create_deck('flex_deck', 'flexer', '6666', 'parrot', 'beer', 'bnv', 'bnvmm')
 
 def get_deck(deck, login, password):
     """Получение колоды"""
@@ -79,7 +79,7 @@ def get_deck(deck, login, password):
     data = {deck:''}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-# get_deck('anything','flexer','6666')
+get_deck('anythingaa','flexer','6666')
 
 def get_all_decks(login, password):
     """Получение всех колод"""

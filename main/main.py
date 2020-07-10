@@ -55,8 +55,8 @@ def delete_card(user_name):
         data = request.json
         for key in data:
             card_name = key
-        user_serv.delete_card(card_name)
-        return {"status":True,
+        answer = user_serv.delete_card(card_name)
+        return {"status":answer,
                 "delete card": card_name}
     return {"status": False, "info": 'wrong client'}
 
@@ -121,7 +121,7 @@ def receive_deck(user_name):
         for key in data:
             deck_name = key
         answer = user_serv.receive_deck(deck_name)
-        return {'status': True, 'info': answer}
+        return {'info': answer}
     return {"status": False, "info": 'wrong client'}
 
 @app.route('/Server/rename_deck/<user_name>', methods=['POST','GET'])

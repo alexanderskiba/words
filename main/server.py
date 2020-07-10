@@ -62,7 +62,6 @@ class Card:
         return f"{self.word} {self.translate}"
 
 
-
 class Deck:
     """Создание колоды карт(по сути темы)"""
     # card_list - список объектов - карточек
@@ -77,12 +76,6 @@ class Deck:
 
     def add_new_card(self):
         WrapperDB().save_card(login)
-
-    def del_card(self):
-        pass
-
-    def edit_card(self):
-        pass
 
 
 class Server:
@@ -112,7 +105,7 @@ class Server:
         return True
 
     def delete_card(self, card_name):
-        WrapperDB().delete_card(card_name, self.login)
+        return WrapperDB().delete_card(card_name, self.login)
 
     def create_deck(self,deck_name, card_list):
         b = Deck(deck_name, card_list)
@@ -299,8 +292,13 @@ class WrapperDB: # Вся алхимия здесь
                 cards = self.cur.execute(f"SELECT word, translate FROM cards WHERE userid = '{us[0]}' and deckid = '{i[0]}'")
                 for card in cards:
                     card_dict[card[0]] = card[1]
-            deck_dict['cards'] = card_dict
-            return deck_dict
+            if len(card_dict) == 0:
+                deck_dict['cards'] = f'No cards or deck with name {deck_name} not exists'
+                status = False
+            else:
+                deck_dict['cards'] = card_dict
+                status = True
+            return deck_dict, {'status': status}
 
     def get_all_decks(self, login):
         """Получение всех колод"""
