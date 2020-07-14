@@ -118,12 +118,18 @@ class Server:
         return WrapperDB().update_deck(deck_name, new_deck_name, self.login)
 
     def delete_card_from_deck(self, deck_name, card_name):
-        deckid = WrapperDB().what_deck(deck_name, self.login)
-        return WrapperDB().del_card_from_deck(card_name, deckid, self.login)
+        try:
+            deckid = WrapperDB().what_deck(deck_name, self.login)
+            return WrapperDB().del_card_from_deck(card_name, deckid, self.login)
+        except UnboundLocalError:
+            return False, 'Wrong deck name'
 
     def delete_deck(self, deck_name):
-        deckid = WrapperDB().what_deck(deck_name, self.login)
-        return WrapperDB().del_deck(deckid, self.login)
+        try:
+            deckid = WrapperDB().what_deck(deck_name, self.login)
+            return WrapperDB().del_deck(deckid, self.login)
+        except UnboundLocalError:
+            return False, 'Wrong deck name'
 
     def receive_card(self,word):
         card_obj = WrapperDB().get_card(word, self.login)
@@ -266,12 +272,6 @@ class WrapperDB: # Вся алхимия здесь
 
     def get_all_cards(self, login):
         """Возвращает данные для всех карт пользователя"""
-        # all_cards = self.cur.execute(f"select cards.id, original, translation from cards "
-        #                              f"inner join carddeckpairs as cdp "
-        #                              f"on cards.id=cdp.cardid "
-        #                              f"inner join decks "
-        #                              f"on cdp.deckid=decks.id "
-        #                              f"where decks.userid={user_id}")
         user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
         for us in user:
             result = self.cur.execute(f"SELECT word, translate from cards WHERE userid = '{us[0]}'")

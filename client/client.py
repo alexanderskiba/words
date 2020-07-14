@@ -79,7 +79,7 @@ def get_deck(deck, login, password):
     data = {deck:''}
     response = requests.post(url,json=data, headers=passwd)
     print(response.json())
-get_deck('anythingaa','flexer','6666')
+# get_deck('anythingaa','flexer','6666')
 
 def get_all_decks(login, password):
     """Получение всех колод"""
@@ -96,7 +96,7 @@ def add_card_to_deck(login, password, deck_name, card_name):
     passwd = {"password": password}
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
-# add_card_to_deck('flexer', '6666', 'anything', 'mem')
+# add_card_to_deck('flexer', '6666', 'shiddd', 'hjgjhkgj')
 
 def add_new_card_to_deck(login, password, deck_name, word, translate):
     """Добавление в существующей колоду несуществующей карты"""
@@ -115,7 +115,7 @@ def rename_deck(login, password, deck_name, new_deck_name):
     passwd = {"password": password}
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
-# rename_deck('flexer', '6666', 'pets111', 'pets666')
+# rename_deck('flexer', '6666', 'pets111451', 'pets66sd6')
 
 def delete_card_from_deck(login, password, deck_name, card_name):
     """Удаление карты из колоды"""
@@ -124,7 +124,7 @@ def delete_card_from_deck(login, password, deck_name, card_name):
     passwd = {"password": password}
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
-# delete_card_from_deck('flexer','6666','pets666','mem')
+# delete_card_from_deck('flexer','6666','pets66546','mem')
 
 def delete_deck(login, password, deck_name):
     """Удаление колоды"""
@@ -134,7 +134,7 @@ def delete_deck(login, password, deck_name):
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
 
-# delete_deck('flexer','6666','pets666')
+delete_deck('flexer','6666','flexdecssdsdk')
 
 
 
