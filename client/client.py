@@ -22,7 +22,7 @@ def write(word, translate, login, password):
 # write('mouse', 'мышь', 'flexer', '6666')
 # write('beer', 'ПЕВАС', 'flexer', '6666')
 # write('vova', 'вова', 'flexer', '6666')
-# write('flex', 'жесткость', 'flexer', '6666')
+# write('life', 'жизнь', 'flexer', '6666')
 # write('parrot', 'попуг', 'flexer', '6666')
 # write('mem', 'мэм', 'flexer', '6666')
 
