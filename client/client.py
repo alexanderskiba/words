@@ -134,7 +134,7 @@ def delete_deck(login, password, deck_name):
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
 
-delete_deck('flexer','6666','flexdecssdsdk')
+# delete_deck('flexer','6666','вапавпвап')
 
 
 
