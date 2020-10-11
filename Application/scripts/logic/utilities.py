@@ -81,14 +81,15 @@ class Deck:
 
 class Server:
     """Основная логика работы по созданию и передаче"""
-    def __init__(self, login, password):
+    def __init__(self, login):#, password):
         self.login = login
-        self.password = password
-        self.authentication = self.is_authentication()
+        # self.password = password
+        # self.authentication = Server.is_authentication()
         # print(self.authentication)
 
-    def is_authentication(self):
-        status = WrapperDB().is_authentication(self.login, self.password)
+    @classmethod
+    def is_authentication(cls, login, password):
+        status = WrapperDB().is_authentication(login, password)
         return status
 
     # def registration(self, login, password):

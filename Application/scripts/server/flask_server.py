@@ -11,9 +11,9 @@ def authentication(func):
     def wrapper(user_name):
         login = user_name
         password = request.headers['Password']
-        user_serv = Server(login, password)
+        # user_serv = Server(login, password)
         
-        if user_serv.authentication:
+        if Server.is_authentication(login, password):
             return func(user_name)
         return {"status": "AuthenticationError"}
     return wrapper
@@ -36,6 +36,7 @@ def create_card(user_name):
     print('Создаем карточку')
   
     data = request.json #принимаем словарь от клиента
+    user_serv = Server(user_name)
     for key, item in data.items():
         word = key
         translate = item
@@ -48,6 +49,8 @@ def create_card(user_name):
 @authentication
 def update_card(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key, item in data.items():
         word = key
         new_word = item[0]
@@ -60,6 +63,8 @@ def update_card(user_name):
 @authentication
 def delete_card(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key in data:
         card_name = key
     answer = user_serv.delete_card(card_name)
@@ -71,6 +76,8 @@ def delete_card(user_name):
 @authentication
 def receive_card(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key, item in data.items():
         word = key
     card = user_serv.receive_card(word)
@@ -91,6 +98,8 @@ def receive_all_cards(user_name):
     card_list = []
     rec_dict["status"] = True
     rec_dict["cards"] = card_list
+    user_serv = Server(user_name)
+
     for i in user_serv.receive_all_cards():
         card_list.append({i.word:i.translate})
     return rec_dict
@@ -100,6 +109,8 @@ def receive_all_cards(user_name):
 @authentication
 def create_deck(user_name):
     data = request.json  # принимаем словарь от клиента
+    user_serv = Server(user_name)
+
     for key, value in data.items():
         deck_name = key
         cards = value
@@ -112,6 +123,8 @@ def create_deck(user_name):
 @authentication
 def receive_deck(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key in data:
         deck_name = key
     answer = user_serv.receive_deck(deck_name)
@@ -122,6 +135,8 @@ def receive_deck(user_name):
 @authentication
 def rename_deck(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key, value in data.items():
         deck_name = key
         new_deck_name = value
@@ -133,6 +148,8 @@ def rename_deck(user_name):
 @authentication
 def delete_card_from_deck(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key, value in data.items():
         deck_name = key
         card_name = value
@@ -144,6 +161,8 @@ def delete_card_from_deck(user_name):
 @authentication
 def delete_deck(user_name):
     data = request.json
+    user_serv = Server(user_name)
+
     for key in data:
         deck_name = key
     answer = user_serv.delete_deck(deck_name)
@@ -153,6 +172,8 @@ def delete_deck(user_name):
 @app.route('/Server/receive_all_decks/<user_name>', methods=['POST','GET'])
 @authentication
 def receive_all_decks(user_name):
+    user_serv = Server(user_name)
+
     answer = user_serv.receive_all_decks()
     return {'status': True, 'info': answer}
 
@@ -162,6 +183,8 @@ def receive_all_decks(user_name):
 def add_card(user_name):
     """добавление существующей карты в колоду"""
     data = request.json
+    user_serv = Server(user_name)
+
     for key, value in data.items():
         deck_name = key
         card_name = value
@@ -173,6 +196,8 @@ def add_card(user_name):
 @authentication
 def add_new_card(user_name): # добавление новой(несуществующе карты) в колоду - по факту создание карты внутри колоды
     data = request.json
+    user_serv = Server(user_name)
+
     for key, value in data.items():
         deck_name = key
         word = value[0]
