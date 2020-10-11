@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 import logging
 import re
 
+
 """Здесь все логика работы сервера"""
 
 class ClientError(Exception):
@@ -154,7 +155,6 @@ class Server:
         return WrapperDB().save_card(word, translate, self.login, deck_id)
 
 
-
 class ConnectDB:
     """Соединение с базой данных"""
     def __init__(self):
@@ -201,7 +201,6 @@ class WrapperDB: # Вся алхимия здесь
                 deck_id = i[0]
         return deck_id
 
-
     def delete_card(self, card_name, login):
         """Функция для удаления карты из всех колод"""
         user = self.cur.execute(f"SELECT user_id, login FROM users WHERE login = '{login}'")
@@ -215,7 +214,6 @@ class WrapperDB: # Вся алхимия здесь
         for us in user:
             self.cur.execute(f"UPDATE cards SET deckid = '0' WHERE word = '{card_name}'"
                              f" and deckid = '{deck_id}' and userid = '{us[0]}'")
-
         return True
 
     def update_card(self, card_name, new_word, new_translate): #все нормально, логин не забыт, т/к сначала идет получение карты(get)
@@ -321,11 +319,9 @@ class WrapperDB: # Вся алхимия здесь
                 self.cur.execute(f"UPDATE cards SET deckid = '{elem[0]}' WHERE word = '{card_name}' and userid = '{us[0]}'")
         return True
 
-
     def is_authentication(self, login, password):
         result = self.cur.execute(f"SELECT login, password FROM users WHERE login = '{login}' AND password = '{password}'")
         for user in result:
-            # print(user)
             if user:
                 return True
         return False
@@ -339,7 +335,6 @@ class WrapperDB: # Вся алхимия здесь
         else:
             result = self.cur.execute(f"INSERT INTO users (login, password) VALUES ('{login}','{password}')")
             return True
-
 
     def user_in_DB(self,login):
         result = self.cur.execute(f"SELECT login, password FROM users WHERE login = '{login}'")
