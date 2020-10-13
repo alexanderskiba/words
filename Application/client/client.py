@@ -6,7 +6,7 @@ def registration(login, password):
     passwd = {"password":password}
     response = requests.post(url, headers=passwd)
     print(response.json())
-# registration('flexer','6666')
+registration('flexer5','7777')
 
 
 def write(word, translate, login, password):
@@ -17,7 +17,7 @@ def write(word, translate, login, password):
     response = requests.post(url, json=data, headers=passwd)
     print(response.json())
 
-write('eeee', 'roocckkk', 'flexer', '6666')
+# write('eeee', 'roocckkk', 'flexer', '6666')
 # write('cat', 'кот', 'flexer', '6666')
 # write('mouse', 'мышь', 'flexer', '6666')
 # write('beer', 'ПЕВАС', 'flexer', '6666')

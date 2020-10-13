@@ -3,7 +3,7 @@ import logging
 import re
 
 
-"""Здесь все логика работы сервера"""
+"""Здесь вся логика работы сервера"""
 
 class ClientError(Exception):
     """ ERROR """
@@ -182,7 +182,7 @@ class WrapperDB: # Вся алхимия здесь
     def __init__(self): #  ConnectDB().cursor()
         # self.cur_str  ConnectDB.cur_string
         self.cur = ConnectDB().cur
-
+#TODO сменить костыли (запрос на извлечение ай ди) на нормальные джойны
     def save_card(self, word, translate, login, deckid=0):
         self.cur.execute(
             "CREATE TABLE IF NOT EXISTS cards (ID SERIAL PRIMARY KEY, "
